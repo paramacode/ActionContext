@@ -3,7 +3,7 @@ import { themes as prismThemes } from "prism-react-renderer";
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config = {
-	title: "ActionContext",
+	title: "action-context",
 	tagline: "",
 	favicon: "img/logo.png",
 
@@ -16,12 +16,12 @@ const config = {
 	url: "https://paramacode.github.io",
 	// Set the /<baseUrl>/ pathname under which your site is served
 	// For GitHub pages deployment, it is often '/<projectName>/'
-	baseUrl: "/ActionContext/",
+	baseUrl: "/action-context/",
 
 	// GitHub pages deployment config.
 	// If you aren't using GitHub pages, you don't need these.
 	organizationName: "paramacode", // Usually your GitHub org/user name.
-	projectName: "ActionContext", // Usually your repo name.
+	projectName: "action-context", // Usually your repo name.
 	deploymentBranch: "gh-pages",
 
 	trailingSlash: false,
@@ -61,7 +61,7 @@ const config = {
 			title: "Guide",
 			items: [
 				{
-					href: "https://github.com/paramacode/ActionContext",
+					href: "https://github.com/paramacode/action-context",
 					label: "GitHub",
 					position: "right",
 				},
