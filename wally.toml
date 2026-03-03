@@ -1,5 +1,5 @@
 [package]
-name = "paramacode/action-context"
+name = "paramacode/actioncontext"
 description = "A lightweight, context-driven input abstraction for Roblox that wraps the Input Action System with clean action definitions, runtime rebinding, and global event routing."
 license = "MIT"
 author: ["paramacode"],
