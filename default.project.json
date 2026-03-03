@@ -1,0 +1,22 @@
+{
+	"name": "action-context",
+	"globIgnorePaths": ["**/package.json", "**/tsconfig.json"],
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"ActionContext": {
+				"$path": "out",
+				"include": {
+					"$path": "include",
+					"node_modules": {
+						"$className": "Folder",
+						"@rbxts": {
+							"$path": "node_modules/@rbxts"
+						}
+					}
+				}
+			}
+		}
+	}
+}

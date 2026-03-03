@@ -1,0 +1,51 @@
+{
+  "name": "@rbxts/action-context",
+  "version": "1.0.0",
+  "description": "A lightweight, context-driven input abstraction for Roblox that wraps the Input Action System with clean action definitions, runtime rebinding, and global event routing.",
+  "main": "out/init.lua",
+  "scripts": {
+    "build": "rbxtsc --type package",
+    "watch": "rbxtsc -w --type package",
+    "serve": "rojo serve default.project.json",
+    "prepublishOnly": "npm run build",
+    "game:build": "rbxtsc --type model",
+    "game:watch": "rbxtsc -w --type model",
+    "game:serve": "rojo serve game-test.project.json"
+  },
+  "keywords": [
+    "roblox",
+    "luau",
+    "roblox-ts",
+    "typescript",
+    "input action system",
+    "ias"
+  ],
+  "author": "paramacode",
+  "license": "MIT",
+  "type": "commonjs",
+  "types": "out/index.d.ts",
+  "files": [
+    "out",
+    "!**/*.tsbuildinfo"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@rbxts/compiler-types": "^3.0.0-types.0",
+    "@rbxts/testez": "^0.4.2-ts.0",
+    "@rbxts/types": "^1.0.909",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-roblox-ts": "^1.4.0",
+    "prettier": "^3.8.1",
+    "roblox-ts": "^3.0.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@rbxts/services": "^1.6.0"
+  }
+}

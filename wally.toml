@@ -1,0 +1,27 @@
+[package]
+name = "paramacode/action-context"
+description = "A lightweight, context-driven input abstraction for Roblox that wraps the Input Action System with clean action definitions, runtime rebinding, and global event routing."
+license = "MIT"
+author: ["paramacode"],
+version = "1.0.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+include = [
+  "src/**",
+  "out/**",
+  "LICENSE.txt",
+  "README.md",
+  "wally.toml"
+]
+
+exclude = [
+  "node_modules/**",
+  ".vscode/**",
+  "docs/**",
+  "*.toml",
+  "*.json",
+  "*.tgz"
+]
+
+[dependencies]
