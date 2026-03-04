@@ -1,7 +1,7 @@
 import { Players } from "@rbxts/services";
 import { GetRegistry } from "../Core/Registry";
 import { IsAvailable } from "../Core/Validator";
-import { ContextBuilder, ContextEntry, ContextOptions } from "../Types";
+import type { ContextBuilder, ContextEntry, ContextOptions } from "../Types";
 import { CreateAction } from "./ActionManager";
 import { SetBindings } from "./BindingManager";
 
