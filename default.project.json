@@ -1,5 +1,5 @@
 {
-	"name": "actioncontext",
+	"name": "action-context",
 	"globIgnorePaths": ["**/package.json", "**/tsconfig.json"],
 	"tree": {
 		"$className": "DataModel",

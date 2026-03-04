@@ -1,5 +1,5 @@
 {
-  "name": "@rbxts/actioncontext",
+  "name": "@rbxts/action-context",
   "version": "1.0.0",
   "description": "A lightweight, context-driven input abstraction for Roblox that wraps the Input Action System with clean action definitions, runtime rebinding, and global event routing.",
   "main": "out/exports.lua",
