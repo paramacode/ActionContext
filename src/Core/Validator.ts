@@ -1,4 +1,4 @@
-import { GetRegistry } from "./Registry";
+import { GetRegistry } from "./registry";
 
 export function IsAvailable(): boolean {
 	const registry = GetRegistry();

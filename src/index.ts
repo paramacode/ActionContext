@@ -1,10 +1,10 @@
-import { Initialize } from "./Core/Registry";
-import { IsAvailable } from "./Core/Validator";
-import { Context, Activate, Deactivate, DestroyContext, GetContexts, GetActions, IsActive } from "./Managers/ContextManager";
-import { On } from "./Managers/ActionManager";
-import { Rebind, GetBindings } from "./Managers/BindingManager";
+import { Initialize } from "./core/registry";
+import { IsAvailable } from "./core/validator";
+import { Context, Activate, Deactivate, DestroyContext, GetContexts, GetActions, IsActive } from "./managers/context-manager";
+import { On } from "./managers/action-manager";
+import { Rebind, GetBindings } from "./managers/binding-manager";
 
-export type { TriggerType, ContextBuilder, ActionBuilder, ContextOptions } from "./Types";
+export type { TriggerType, ContextBuilder, ActionBuilder, ContextOptions } from "./types";
 
 Initialize();
 

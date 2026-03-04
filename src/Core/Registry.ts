@@ -1,4 +1,4 @@
-import type { Registry } from "../Types";
+import type { Registry } from "../types";
 
 const registry: Registry = {
 	contexts: new Map(),

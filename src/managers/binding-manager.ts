@@ -1,5 +1,5 @@
-import { GetRegistry } from "../Core/Registry";
-import type { ActionInstance } from "../Types";
+import { GetRegistry } from "../core/registry";
+import type { ActionInstance } from "../types";
 
 function resolveActionEntry(contextId: string, actionName: string): ActionInstance | undefined {
 	const contextEntry = GetRegistry().contexts.get(contextId);

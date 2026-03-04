@@ -1,9 +1,9 @@
 import { Players } from "@rbxts/services";
-import { GetRegistry } from "../Core/Registry";
-import { IsAvailable } from "../Core/Validator";
-import type { ContextBuilder, ContextEntry, ContextOptions } from "../Types";
-import { CreateAction } from "./ActionManager";
-import { SetBindings } from "./BindingManager";
+import { GetRegistry } from "../core/registry";
+import { IsAvailable } from "../core/validator";
+import type { ContextBuilder, ContextEntry, ContextOptions } from "../types";
+import { CreateAction } from "./action-manager";
+import { SetBindings } from "./binding-manager";
 
 const player = Players.LocalPlayer;
 let cachedPlayerGui: PlayerGui | undefined;

@@ -1,5 +1,5 @@
-import { GetRegistry } from "../Core/Registry";
-import type { ActionInstance, EventHandler, Registry, TriggerType } from "../Types";
+import { GetRegistry } from "../core/registry";
+import type { ActionInstance, EventHandler, Registry, TriggerType } from "../types";
 
 function getSignal(action: InputAction, trigger: TriggerType) {
 	if (trigger === "began") return action.Pressed;
