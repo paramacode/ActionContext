@@ -14,13 +14,21 @@ Contexts start **disabled** by default. You must explicitly activate them.
 
 ---
 
-### `Input.Context(identifier, builder, options?)`
+### `Input.Context(identifier, builderOrProfile, options?)`
 
 | Parameter | Type | Default | Description |
 |:---:|:---:|:---:|:---:|
 | `identifier` | `string` | - | Unique name for this context. |
-| `builder` | `(context: ContextBuilder) => void` | - | Callback that defines actions and bindings. |
+| `builderOrProfile` | `((context: ContextBuilder) => void) \| ActionProfile` | - | A builder callback **or** an `ActionProfile` map. |
 | `options` | `ContextOptions` | `undefined` | Optional configuration. |
+
+#### ActionProfile
+
+```ts
+type ActionProfile = ReadonlyMap<string, Enum.KeyCode | Enum.KeyCode[]>
+```
+
+A `Map` that maps action names to their key bindings. When passed directly as the second argument, ActionContext creates all actions and bindings automatically — no builder callback needed.
 
 #### ContextOptions
 
@@ -103,35 +111,34 @@ The `ActionBuilder` exposes:
 
 ### Dynamic definition from a player profile
 
+Pass an `ActionProfile` (a `Map` of action names → key bindings) directly to `Input.Context` instead of a builder callback. ActionContext iterates the map internally — no manual looping required.
+
 <Tabs groupId="languages">
   <TabItem value="ts" label="TypeScript">
     ```ts
-    const profile: Record<string, Enum.KeyCode[]> = {
-        Jump: [Enum.KeyCode.Space, Enum.KeyCode.ButtonA],
-        Shoot: [Enum.KeyCode.ButtonR2],
-        Reload: [Enum.KeyCode.R],
-    };
+    import { Input, ActionProfile } from "@rbxts/actioncontext";
 
-    Input.Context("Gameplay", (context) => {
-        for (const [action, keys] of profile) {
-            context.action(action).bind(keys);
-        }
-    });
+    const profile = new Map<string, Enum.KeyCode[]>([
+        ["Jump", [Enum.KeyCode.Space, Enum.KeyCode.ButtonA]],
+        ["Shoot", [Enum.KeyCode.ButtonR2]],
+        ["Reload", [Enum.KeyCode.R]],
+    ]);
+
+    Input.Context("Gameplay", profile);
     ```
   </TabItem>
   <TabItem value="lua" label="Luau">
     ```lua
+    local ActionContext = require(path.to.ActionContext)
+    local Input = ActionContext.Input
+
     local profile = {
         Jump = { Enum.KeyCode.Space, Enum.KeyCode.ButtonA },
         Shoot = { Enum.KeyCode.ButtonR2 },
         Reload = { Enum.KeyCode.R },
     }
 
-    Input.Context("Gameplay", function(context)
-        for action, keys in profile do
-            context.action(action).bind(keys)
-        end
-    end)
+    Input.Context("Gameplay", profile)
     ```
   </TabItem>
 </Tabs>
