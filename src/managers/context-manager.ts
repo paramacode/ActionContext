@@ -1,7 +1,7 @@
 import { Players } from "@rbxts/services";
 import { GetRegistry } from "../core/registry";
 import { IsAvailable } from "../core/validator";
-import type { ContextBuilder, ContextEntry, ContextOptions } from "../types";
+import type { ActionProfile, ContextBuilder, ContextEntry, ContextOptions } from "../types";
 import { CreateAction } from "./action-manager";
 import { SetBindings } from "./binding-manager";
 
@@ -17,7 +17,7 @@ function getPlayerGui(): PlayerGui {
 
 export function Context(
 	identifier: string,
-	builder: (context: ContextBuilder) => void,
+	builderOrProfile: ((context: ContextBuilder) => void) | ActionProfile,
 	options?: ContextOptions,
 ): void {
 	if (!IsAvailable()) return;
@@ -63,7 +63,13 @@ export function Context(
 		},
 	};
 
-	builder(context);
+	if (typeIs(builderOrProfile, "function")) {
+		builderOrProfile(context);
+	} else {
+		for (const [actionName, keys] of builderOrProfile) {
+			context.action(actionName).bind(keys);
+		}
+	}
 }
 
 export function Activate(identifier: string, exclusive?: boolean): void {

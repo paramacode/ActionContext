@@ -3,5 +3,6 @@ export type {
     TriggerType, 
     ContextBuilder, 
     ActionBuilder, 
-    ContextOptions 
+    ContextOptions,
+    ActionProfile 
 } from "./types";

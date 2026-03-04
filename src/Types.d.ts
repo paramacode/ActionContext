@@ -34,3 +34,5 @@ export interface ActionBuilder {
 export interface ContextBuilder {
 	action(name: string): ActionBuilder;
 }
+
+export type ActionProfile = ReadonlyMap<string, Enum.KeyCode | Enum.KeyCode[]>;

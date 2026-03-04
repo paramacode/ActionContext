@@ -155,23 +155,19 @@ export = () => {
 		});
 
 		it("should support dynamic context definition from a profile", () => {
-			const profile: Record<string, Enum.KeyCode[]> = {
-				Jump: [Enum.KeyCode.Space, Enum.KeyCode.ButtonA],
-				Shoot: [Enum.KeyCode.ButtonR2],
-				Reload: [Enum.KeyCode.R],
-			};
+			const profile = new Map<string, Enum.KeyCode[]>([
+				["Jump", [Enum.KeyCode.Space, Enum.KeyCode.ButtonA]],
+				["Shoot", [Enum.KeyCode.ButtonR2]],
+				["Reload", [Enum.KeyCode.R]],
+			]);
 
-			Input.Context(TEST_CONTEXT, (context) => {
-				for (const [action, keys] of pairs(profile)) {
-					context.action(action).bind(keys);
-				}
-			});
+			Input.Context(TEST_CONTEXT, profile);
 
 			const actions = Input.GetActions(TEST_CONTEXT);
 			expect(actions).to.be.ok();
 			expect(actions!.size()).to.equal(3);
 
-			for (const [action, expectedKeys] of pairs(profile)) {
+			for (const [action, expectedKeys] of profile) {
 				const keys = Input.GetBindings(TEST_CONTEXT, action);
 				expect(keys).to.be.ok();
 				expect(keys!.size()).to.equal(expectedKeys.size());

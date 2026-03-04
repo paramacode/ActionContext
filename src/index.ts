@@ -4,7 +4,7 @@ import { Context, Activate, Deactivate, DestroyContext, GetContexts, GetActions,
 import { On } from "./managers/action-manager";
 import { Rebind, GetBindings } from "./managers/binding-manager";
 
-export type { TriggerType, ContextBuilder, ActionBuilder, ContextOptions } from "./types";
+export type { TriggerType, ContextBuilder, ActionBuilder, ContextOptions, ActionProfile } from "./types";
 
 Initialize();
 
