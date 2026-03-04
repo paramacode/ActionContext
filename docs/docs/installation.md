@@ -12,7 +12,7 @@ Intended only for *[roblox-ts](https://roblox-ts.com/)* users:
 Install **ActionContext** by running *the following command* in your *terminal*:
 
 ```bash
-npm install @rbxts/actioncontext@latest
+npm install @rbxts/action-context@latest
 ```
 
 ### *WALLY*
@@ -23,7 +23,7 @@ under `[dependencies]` in your `wally.toml` file.
 
 ```md title="wally.toml"
 [dependencies]
-ActionContext = "paramacode/actioncontext@1.0.0"
+ActionContext = "paramacode/action-context@1.0.0"
 ```
 
 ### *ROBLOX STUDIO*

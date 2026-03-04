@@ -63,7 +63,7 @@ The `ActionBuilder` exposes:
 <Tabs groupId="languages">
   <TabItem value="ts" label="TypeScript">
     ```ts
-    import { Input } from "@rbxts/actioncontext";
+    import { Input } from "@rbxts/action-context";
 
     Input.Context("Gameplay", (context) => {
         context.action("Jump").bind(Enum.KeyCode.Space);
