@@ -4,6 +4,7 @@ export interface ActionInstance {
 	instance: InputAction;
 	connections: RBXScriptConnection[];
 	keys: Enum.KeyCode[];
+	defaultKeys?: Enum.KeyCode[];
 }
 
 export interface ContextEntry {
@@ -36,3 +37,16 @@ export interface ContextBuilder {
 }
 
 export type ActionProfile = ReadonlyMap<string, Enum.KeyCode | Enum.KeyCode[]>;
+
+export interface BindingConflict {
+	actionName: string;
+	key: Enum.KeyCode;
+}
+
+export interface InputListenerOptions {
+	allowGameProcessed?: boolean;
+	ignoreKeys?: Enum.KeyCode[];
+	inputTypes?: Enum.UserInputType[];
+}
+
+export type BindingProfile = ReadonlyMap<string, ReadonlyArray<Enum.KeyCode>>;

@@ -2,9 +2,9 @@ import { Initialize } from "./core/registry";
 import { IsAvailable } from "./core/validator";
 import { Context, Activate, Deactivate, DestroyContext, GetContexts, GetActions, IsActive } from "./managers/context-manager";
 import { On } from "./managers/action-manager";
-import { Rebind, GetBindings } from "./managers/binding-manager";
+import { Rebind, GetBindings, ResetBindings, ResetAllBindings, GetDefaultBindings, GetAllBindings, ExportBindings, ImportBindings, FindConflicts, ListenForInput } from "./managers/binding-manager";
 
-export type { TriggerType, ContextBuilder, ActionBuilder, ContextOptions, ActionProfile } from "./types";
+export type { TriggerType, ContextBuilder, ActionBuilder, ContextOptions, ActionProfile, BindingConflict, InputListenerOptions, BindingProfile } from "./types";
 
 Initialize();
 
@@ -29,6 +29,30 @@ export const Input = {
 
     /** Query the current bindings for an action. Returns readonly array of KeyCodes. */
     GetBindings,
+
+    /** Query the original default bindings for an action. */
+    GetDefaultBindings,
+
+    /** Reset an action's bindings to the original defaults. */
+    ResetBindings,
+
+    /** Reset all action bindings in a context to their original defaults. */
+    ResetAllBindings,
+
+    /** Get all current bindings for every action in a context. */
+    GetAllBindings,
+
+    /** Export all bindings for a context as a serializable map (for DataStore persistence). */
+    ExportBindings,
+
+    /** Apply a previously exported binding profile to a context. */
+    ImportBindings,
+
+    /** Check for binding conflicts before rebinding (same key on multiple actions). */
+    FindConflicts,
+
+    /** Listen for the next player key input (for "press any key" rebind UI). Returns a cancel function. */
+    ListenForInput,
 
     /** Get all registered context identifiers. */
     GetContexts,

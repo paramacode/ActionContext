@@ -1,4 +1,6 @@
 import { GetRegistry } from "../core/registry";
+import { ValidateIdentifier, ValidateTriggerType } from "../core/validator";
+
 import type { ActionInstance, EventHandler, Registry, TriggerType } from "../types";
 
 function getSignal(action: InputAction, trigger: TriggerType) {
@@ -9,7 +11,8 @@ function getSignal(action: InputAction, trigger: TriggerType) {
 
 function connectHandler(handler: EventHandler, actionEntry: ActionInstance): void {
 	const signal = getSignal(actionEntry.instance, handler.type);
-	const connection = signal.Connect(handler.callback as () => void);
+	const connection = signal.Connect(handler.callback);
+
 	actionEntry.connections.push(connection);
 	handler.connections.push(connection);
 }
@@ -36,11 +39,17 @@ export function CreateAction(contextId: string, actionName: string): InputAction
 		return undefined;
 	}
 
-	// Destroy existing action with same name in this context
 	const existing = contextEntry.actions.get(actionName);
 	if (existing) {
-		existing.connections.forEach((c) => c.Disconnect());
+		existing.connections.forEach((connection) => connection.Disconnect());
 		existing.instance.Destroy();
+
+		const existingHandlers = registry.handlers.get(actionName);
+		if (existingHandlers) {
+			for (const handler of existingHandlers) {
+				handler.connections = handler.connections.filter((conn) => conn.Connected);
+			}
+		}
 	}
 
 	const action = new Instance("InputAction");
@@ -65,6 +74,9 @@ export function On(
 	triggerType: TriggerType,
 	callback: () => void,
 ): () => void {
+	ValidateIdentifier(actionName, "Action name");
+	ValidateTriggerType(triggerType);
+
 	const registry = GetRegistry();
 
 	if (!registry.handlers.has(actionName)) {
@@ -74,7 +86,6 @@ export function On(
 	const handler: EventHandler = { type: triggerType, callback, connections: [] };
 	registry.handlers.get(actionName)!.push(handler);
 
-	// Connect to all existing action instances with this name across all contexts
 	for (const [, contextEntry] of registry.contexts) {
 		const actionEntry = contextEntry.actions.get(actionName);
 		if (actionEntry) {

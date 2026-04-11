@@ -1,16 +1,18 @@
 import { Players } from "@rbxts/services";
 import { GetRegistry } from "../core/registry";
-import { IsAvailable } from "../core/validator";
-import type { ActionProfile, ContextBuilder, ContextEntry, ContextOptions } from "../types";
+import { IsAvailable, ValidateIdentifier } from "../core/validator";
 import { CreateAction } from "./action-manager";
 import { SetBindings } from "./binding-manager";
 
-const player = Players.LocalPlayer;
+import type { ActionProfile, ContextBuilder, ContextEntry, ContextOptions } from "../types";
+
+const LOCAL_PLAYER = Players.LocalPlayer;
+
 let cachedPlayerGui: PlayerGui | undefined;
 
 function getPlayerGui(): PlayerGui {
 	if (!cachedPlayerGui) {
-		cachedPlayerGui = player.WaitForChild("PlayerGui") as PlayerGui;
+		cachedPlayerGui = LOCAL_PLAYER.WaitForChild("PlayerGui") as PlayerGui;
 	}
 	return cachedPlayerGui;
 }
@@ -21,9 +23,9 @@ export function Context(
 	options?: ContextOptions,
 ): void {
 	if (!IsAvailable()) return;
+	ValidateIdentifier(identifier, "Context identifier");
 
 	const registry = GetRegistry();
-
 	if (registry.contexts.has(identifier)) {
 		if (!options?.override) {
 			error(`Context '${identifier}' already exists. Pass { override: true } to replace it.`);
@@ -35,17 +37,16 @@ export function Context(
 
 	const instance = new Instance("InputContext");
 	instance.Name = identifier;
-	instance.Enabled = false; // Starts disabled - user activates explicitly
+	instance.Enabled = false;
 	instance.Parent = playerGui;
 
 	const entry: ContextEntry = {
-		instance: instance as InputContext,
+		instance: instance,
 		actions: new Map(),
 	};
 
 	registry.contexts.set(identifier, entry);
 
-	// Execute builder callback
 	const context: ContextBuilder = {
 		action(actionName: string) {
 			const actionInstance = CreateAction(identifier, actionName);
@@ -73,7 +74,9 @@ export function Context(
 }
 
 export function Activate(identifier: string, exclusive?: boolean): void {
+	ValidateIdentifier(identifier, "Context identifier");
 	const registry = GetRegistry();
+
 	const entry = registry.contexts.get(identifier);
 	if (!entry) {
 		warn(`Context '${identifier}' not found`);
@@ -92,26 +95,32 @@ export function Activate(identifier: string, exclusive?: boolean): void {
 }
 
 export function Deactivate(identifier: string): void {
+	ValidateIdentifier(identifier, "Context identifier");
 	const registry = GetRegistry();
-	const entry = registry.contexts.get(identifier);
 
+	const entry = registry.contexts.get(identifier);
 	if (!entry) {
 		warn(`Context '${identifier}' not found`);
 		return;
 	}
-
 	entry.instance.Enabled = false;
 }
 
 export function DestroyContext(identifier: string): void {
 	const registry = GetRegistry();
-	const entry = registry.contexts.get(identifier);
 
+	const entry = registry.contexts.get(identifier);
 	if (!entry) return;
 
 	for (const [, actionEntry] of entry.actions) {
 		actionEntry.connections.forEach((connection) => connection.Disconnect());
 		actionEntry.instance.Destroy();
+	}
+
+	for (const [, handlers] of registry.handlers) {
+		for (const handler of handlers) {
+			handler.connections = handler.connections.filter((conn) => conn.Connected);
+		}
 	}
 
 	entry.instance.Destroy();
