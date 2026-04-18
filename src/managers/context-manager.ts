@@ -112,14 +112,15 @@ export function DestroyContext(identifier: string): void {
 	const entry = registry.contexts.get(identifier);
 	if (!entry) return;
 
-	for (const [, actionEntry] of entry.actions) {
+	for (const [actionName, actionEntry] of entry.actions) {
 		actionEntry.connections.forEach((connection) => connection.Disconnect());
 		actionEntry.instance.Destroy();
-	}
 
-	for (const [, handlers] of registry.handlers) {
-		for (const handler of handlers) {
-			handler.connections = handler.connections.filter((conn) => conn.Connected);
+		const handlers = registry.handlers.get(actionName);
+		if (handlers) {
+			for (const handler of handlers) {
+				handler.connections = handler.connections.filter((conn) => conn.Connected);
+			}
 		}
 	}
 
@@ -150,4 +151,28 @@ export function IsActive(identifier: string): boolean {
 	const entry = GetRegistry().contexts.get(identifier);
 	if (!entry) return false;
 	return entry.instance.Enabled;
+}
+
+export function DestroyAll(): void {
+	const registry = GetRegistry();
+
+	for (const [, entry] of registry.contexts) {
+		for (const [, actionEntry] of entry.actions) {
+			actionEntry.connections.forEach((connection) => connection.Disconnect());
+			actionEntry.instance.Destroy();
+		}
+		entry.instance.Destroy();
+	}
+
+	registry.contexts.clear();
+
+	for (const [, handlers] of registry.handlers) {
+		for (const handler of handlers) {
+			for (const connection of handler.connections) {
+				connection.Disconnect();
+			}
+			handler.connections = [];
+		}
+	}
+	registry.handlers.clear();
 }

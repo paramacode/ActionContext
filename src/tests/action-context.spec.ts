@@ -6,10 +6,7 @@ export = () => {
 	const TEST_CONTEXT = "TestContext";
 
 	afterEach(() => {
-		// Clean up all contexts between tests
-		for (const id of Input.GetContexts()) {
-			Input.Destroy(id);
-		}
+		Input.DestroyAll();
 	});
 
 	describe("Context lifecycle", () => {
@@ -247,6 +244,33 @@ export = () => {
 		it("should report IAS availability", () => {
 			// On a real Roblox client with IAS, this should be true
 			expect(typeOf(Input.IsAvailable())).to.equal("boolean");
+		});
+	});
+
+	describe("Hold to activate (F key)", () => {
+		it("should activate context on press and deactivate on release", () => {
+			const HOLD_CONTEXT = "HoldContext";
+
+			Input.Context(HOLD_CONTEXT, (context) => {
+				context.action("HoldToggle").bind(Enum.KeyCode.F);
+			});
+
+			Input.On("HoldToggle", "began", () => {
+				Input.Activate(HOLD_CONTEXT);
+			});
+
+			Input.On("HoldToggle", "ended", () => {
+				Input.Deactivate(HOLD_CONTEXT);
+			});
+
+			// Verify initial state
+			expect(Input.IsActive(HOLD_CONTEXT)).to.equal(false);
+
+			// Verify bindings are correct
+			const keys = Input.GetBindings(HOLD_CONTEXT, "HoldToggle");
+			expect(keys).to.be.ok();
+			expect(keys!.size()).to.equal(1);
+			expect(keys!.includes(Enum.KeyCode.F)).to.equal(true);
 		});
 	});
 };

@@ -1,6 +1,6 @@
 import { Initialize } from "./core/registry";
 import { IsAvailable } from "./core/validator";
-import { Context, Activate, Deactivate, DestroyContext, GetContexts, GetActions, IsActive } from "./managers/context-manager";
+import { Context, Activate, Deactivate, DestroyContext, DestroyAll, GetContexts, GetActions, IsActive } from "./managers/context-manager";
 import { On } from "./managers/action-manager";
 import { Rebind, GetBindings, ResetBindings, ResetAllBindings, GetDefaultBindings, GetAllBindings, ExportBindings, ImportBindings, FindConflicts, ListenForInput } from "./managers/binding-manager";
 
@@ -20,6 +20,9 @@ export const Input = {
 
     /** Destroy a context and all its actions/bindings. */
     Destroy: DestroyContext,
+
+    /** Destroy all contexts, actions, bindings, and handlers. Useful for full state reset. */
+    DestroyAll,
 
     /** Subscribe to an action trigger ("began", "ended", "changed") across all contexts. Returns a disconnect function. */
     On,
