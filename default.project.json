@@ -1,11 +1,11 @@
 {
-	"name": "action-context",
+	"name": "input-intent",
 	"globIgnorePaths": ["**/package.json", "**/tsconfig.json"],
 	"tree": {
 		"$className": "DataModel",
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
-			"ActionContext": {
+			"input-intent": {
 				"$path": "out",
 				"include": {
 					"$path": "include",

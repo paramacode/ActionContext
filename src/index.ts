@@ -24,10 +24,11 @@ export type {
 	BindingProfile,
 	ContextConfig,
 	InputListenerOptions,
+	ClientToServer,
+	ServerToClient,
 } from "./types";
 export type { Action } from "./action/action";
 export type { Context } from "./context/context";
-export type { ClientToServer, ServerToClient } from "./types";
 
 export const Input = {
 	context(id: string, config?: ContextConfig): Context {
@@ -109,7 +110,7 @@ export const Input = {
 
 	reset(): void {
 		for (const [, context] of registry.contexts) context.destroy();
-		
+
 		registry.contexts.clear();
 		cooldown.clearAll();
 	},

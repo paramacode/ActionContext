@@ -1,11 +1,11 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local ActionContext = ReplicatedStorage:WaitForChild("ActionContext")
+local ActionContext = ReplicatedStorage:WaitForChild("input-intent")
 
 local TestEZ = require(ActionContext.include.node_modules["@rbxts"].testez.src)
 
 local results = TestEZ.TestBootstrap:run({
-	ReplicatedStorage.ActionContext.Tests
+	ReplicatedStorage["input-intent"].tests
 })
 
 if results.failureCount > 0 then

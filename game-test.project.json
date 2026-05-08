@@ -5,7 +5,7 @@
 		"$className": "DataModel",
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
-			"ActionContext": {
+			"input-intent": {
 				"$path": "out",
 				"include": {
 					"$path": "include",

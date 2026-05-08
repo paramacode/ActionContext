@@ -1,5 +1,3 @@
-import { rebalanceStack } from "../context/stack";
-
 import type { Context } from "../context/context";
 import type { BindingProfile } from "../types";
 
@@ -14,19 +12,15 @@ export function importProfile(
 	profile: ReadonlyMap<string, Enum.KeyCode | ReadonlyArray<Enum.KeyCode>>,
 ): boolean {
 	let applied = false;
-
 	for (const [name, keys] of profile) {
 		const action = context.actions.get(name);
 		if (!action) continue;
-		
 		const list: ReadonlyArray<Enum.KeyCode> = typeIs(keys, "table")
 			? (keys as ReadonlyArray<Enum.KeyCode>)
 			: [keys as Enum.KeyCode];
 		action._setKeys(list);
 		applied = true;
 	}
-
-	if (applied) rebalanceStack();
 	return applied;
 }
 

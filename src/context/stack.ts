@@ -6,13 +6,8 @@ import type { Context } from "./context";
 const _stack: string[] = [];
 
 let _blocked = new Set<string>();
-let _dirty = true;
 
 export function rebalanceStack(): void {
-	_dirty = true;
-}
-
-function _rebuild(): void {
 	const enabled: Context[] = [];
 	for (const [, context] of registry.contexts) if (context.enabled) enabled.push(context);
 	enabled.sort((a, b) => {
@@ -35,13 +30,9 @@ function _rebuild(): void {
 	}
 
 	_blocked = blocked;
-	_dirty = false;
 }
 
-_setSuppressionCheck((action: Action): boolean => {
-	if (_dirty) _rebuild();
-	return _blocked.has(action.contextId);
-});
+_setSuppressionCheck((action: Action): boolean => _blocked.has(action.contextId));
 
 export function push(id: string): void {
 	const context = registry.contexts.get(id);
