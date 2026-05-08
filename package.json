@@ -1,7 +1,7 @@
 {
   "name": "@rbxts/input-intent",
   "version": "1.0.0",
-  "description": "A lightweight, context-driven input abstraction for Roblox that wraps the Input Action System with clean action definitions, runtime rebinding, and global event routing.",
+  "description": "Intent-driven input runtime for Roblox with contextual action management, buffering, interruption, rebinding, and network-ready gameplay flows. Built with roblox-ts.",
   "main": "out",
   "scripts": {
     "build": "rbxtsc --type package",
