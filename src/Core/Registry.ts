@@ -1,20 +1,24 @@
-import type { Registry } from "../types";
+import type { Action } from "../action/action";
+import type { Context } from "../context/context";
 
-const registry: Registry = {
-	contexts: new Map(),
-	handlers: new Map(),
-	iasAvailable: false,
-};
-
-export function Initialize(): boolean {
-	const [success] = pcall(() => {
-		const test = new Instance("InputContext");
-		test.Destroy();
-	});
-	registry.iasAvailable = success;
-	return success;
+interface Registry {
+	contexts: Map<string, Context>;
+	actionsById: Map<string, Action>;
+	activeHolds: Set<Action>;
+	transient: Set<Action>;
+	buffered: Set<Action>;
+	frame: number;
 }
 
-export function GetRegistry(): Registry {
-	return registry;
+export const registry: Registry = {
+	contexts: new Map(),
+	actionsById: new Map(),
+	activeHolds: new Set(),
+	transient: new Set(),
+	buffered: new Set(),
+	frame: 0,
+};
+
+export function actionKey(contextId: string, name: string): string {
+	return `${contextId}:${name}`;
 }

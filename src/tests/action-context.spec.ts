@@ -3,274 +3,223 @@
 import { Input } from "../index";
 
 export = () => {
-	const TEST_CONTEXT = "TestContext";
+	afterEach(() => Input.reset());
 
-	afterEach(() => {
-		Input.DestroyAll();
-	});
-
-	describe("Context lifecycle", () => {
-		it("should create a context", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-			});
-
-			expect(Input.GetContexts().includes(TEST_CONTEXT)).to.equal(true);
+	describe("context", () => {
+		it("creates and is idempotent", () => {
+			const a = Input.context("combat");
+			const b = Input.context("combat");
+			expect(a).to.equal(b);
 		});
 
-		it("should start disabled", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-			});
-
-			expect(Input.IsActive(TEST_CONTEXT)).to.equal(false);
+		it("updates priority on repeat call", () => {
+			Input.context("combat", { priority: 10 });
+			Input.context("combat", { priority: 50 });
+			expect(Input.context("combat").priority).to.equal(50);
 		});
 
-		it("should error when redefining without override flag", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-			});
-
-			expect(() => {
-				Input.Context(TEST_CONTEXT, (context) => {
-					context.action("Jump").bind(Enum.KeyCode.Space);
-				});
-			}).to.throw();
+		it("starts disabled and toggles", () => {
+			const ctx = Input.context("combat");
+			expect(ctx.enabled).to.equal(false);
+			ctx.enable();
+			expect(ctx.enabled).to.equal(true);
+			ctx.disable();
+			expect(ctx.enabled).to.equal(false);
 		});
 
-		it("should allow override with flag", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-			});
-
-			Input.Context(
-				TEST_CONTEXT,
-				(context) => {
-					context.action("Shoot").bind(Enum.KeyCode.ButtonR2);
-				},
-				{ override: true },
-			);
-
-			const actions = Input.GetActions(TEST_CONTEXT);
-			expect(actions).to.be.ok();
-			expect(actions!.includes("Shoot")).to.equal(true);
-			expect(actions!.includes("Jump")).to.equal(false);
-		});
-
-		it("should destroy a context and its actions", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-			});
-
-			Input.Destroy(TEST_CONTEXT);
-
-			expect(Input.GetContexts().includes(TEST_CONTEXT)).to.equal(false);
+		it("destroy removes the context", () => {
+			Input.context("combat");
+			Input.context("combat").destroy();
+			expect(Input.contexts().includes("combat")).to.equal(false);
 		});
 	});
 
-	describe("Activate / Deactivate", () => {
-		it("should activate a context", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-			});
-
-			Input.Activate(TEST_CONTEXT);
-			expect(Input.IsActive(TEST_CONTEXT)).to.equal(true);
+	describe("action", () => {
+		it("returns a stable handle", () => {
+			const ctx = Input.context("combat");
+			const a = ctx.action("Barrage", { bindings: [Enum.KeyCode.E] });
+			const b = ctx.action("Barrage");
+			expect(a).to.equal(b);
 		});
 
-		it("should deactivate a context", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-			});
-
-			Input.Activate(TEST_CONTEXT);
-			Input.Deactivate(TEST_CONTEXT);
-			expect(Input.IsActive(TEST_CONTEXT)).to.equal(false);
+		it("exposes id, name, contextId, state, keys", () => {
+			const a = Input.context("combat").action("Barrage", { bindings: [Enum.KeyCode.E] });
+			expect(a.id).to.equal("combat:Barrage");
+			expect(a.name).to.equal("Barrage");
+			expect(a.contextId).to.equal("combat");
+			expect(a.state).to.equal("idle");
+			expect(a.isHeld()).to.equal(false);
+			expect(a.keys[0]).to.equal(Enum.KeyCode.E);
 		});
 
-		it("should support exclusive activation", () => {
-			Input.Context("A", (context) => {
-				context.action("X").bind(Enum.KeyCode.A);
-			});
-			Input.Context("B", (context) => {
-				context.action("Y").bind(Enum.KeyCode.B);
-			});
-
-			Input.Activate("A");
-			Input.Activate("B");
-			expect(Input.IsActive("A")).to.equal(true);
-			expect(Input.IsActive("B")).to.equal(true);
-
-			// Exclusive mode: activating A should deactivate B
-			Input.Activate("A", true);
-			expect(Input.IsActive("A")).to.equal(true);
-			expect(Input.IsActive("B")).to.equal(false);
-		});
-	});
-
-	describe("Actions and Bindings", () => {
-		it("should register actions inside a context", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-				context.action("Shoot").bind(Enum.KeyCode.ButtonR2);
-				context.action("Reload").bind(Enum.KeyCode.R);
-			});
-
-			const actions = Input.GetActions(TEST_CONTEXT);
-			expect(actions).to.be.ok();
-			expect(actions!.size()).to.equal(3);
-			expect(actions!.includes("Jump")).to.equal(true);
-			expect(actions!.includes("Shoot")).to.equal(true);
-			expect(actions!.includes("Reload")).to.equal(true);
+		it("chains subscriptions", () => {
+			const a = Input.context("combat")
+				.action("Barrage", { bindings: [Enum.KeyCode.E] })
+				.onStart(() => {})
+				.onHold(() => {})
+				.onRelease(() => {});
+			expect(a.name).to.equal("Barrage");
 		});
 
-		it("should store bindings and return them via GetBindings", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind([Enum.KeyCode.Space, Enum.KeyCode.ButtonA]);
-			});
-
-			const keys = Input.GetBindings(TEST_CONTEXT, "Jump");
-			expect(keys).to.be.ok();
-			expect(keys!.size()).to.equal(2);
-			expect(keys!.includes(Enum.KeyCode.Space)).to.equal(true);
-			expect(keys!.includes(Enum.KeyCode.ButtonA)).to.equal(true);
+		it("Input.action looks up by id", () => {
+			const a = Input.context("combat").action("Barrage", { bindings: [Enum.KeyCode.E] });
+			expect(Input.action("combat:Barrage")).to.equal(a);
+			expect(Input.action("nope")).never.to.be.ok();
 		});
 
-		it("should rebind keys at runtime", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-			});
-
-			Input.Rebind(TEST_CONTEXT, "Jump", [Enum.KeyCode.ButtonA, Enum.KeyCode.ButtonB]);
-
-			const keys = Input.GetBindings(TEST_CONTEXT, "Jump");
-			expect(keys).to.be.ok();
-			expect(keys!.size()).to.equal(2);
-			expect(keys!.includes(Enum.KeyCode.ButtonA)).to.equal(true);
-			expect(keys!.includes(Enum.KeyCode.ButtonB)).to.equal(true);
-			expect(keys!.includes(Enum.KeyCode.Space)).to.equal(false);
+		it("rebind updates keys", () => {
+			const a = Input.context("combat").action("Barrage", { bindings: [Enum.KeyCode.E] });
+			Input.rebind(a, [Enum.KeyCode.Q]);
+			expect(a.keys[0]).to.equal(Enum.KeyCode.Q);
 		});
 
-		it("should support dynamic context definition from a profile", () => {
-			const profile = new Map<string, Enum.KeyCode[]>([
-				["Jump", [Enum.KeyCode.Space, Enum.KeyCode.ButtonA]],
-				["Shoot", [Enum.KeyCode.ButtonR2]],
-				["Reload", [Enum.KeyCode.R]],
-			]);
+		it("reset returns to defaults", () => {
+			const a = Input.context("combat").action("Barrage", { bindings: [Enum.KeyCode.E] });
+			Input.rebind(a, [Enum.KeyCode.Q]);
+			Input.resetBindings(a);
+			expect(a.keys[0]).to.equal(Enum.KeyCode.E);
+		});
 
-			Input.Context(TEST_CONTEXT, profile);
-
-			const actions = Input.GetActions(TEST_CONTEXT);
-			expect(actions).to.be.ok();
-			expect(actions!.size()).to.equal(3);
-
-			for (const [action, expectedKeys] of profile) {
-				const keys = Input.GetBindings(TEST_CONTEXT, action);
-				expect(keys).to.be.ok();
-				expect(keys!.size()).to.equal(expectedKeys.size());
-			}
+		it("findConflicts reports overlapping keys", () => {
+			const ctx = Input.context("combat");
+			ctx.action("A", { bindings: [Enum.KeyCode.E] });
+			const b = ctx.action("B", { bindings: [Enum.KeyCode.Q] });
+			const conflicts = Input.findConflicts(b, Enum.KeyCode.E);
+			expect(conflicts.size()).to.equal(1);
+			expect(conflicts[0].actionName).to.equal("A");
 		});
 	});
 
-	describe("Event handlers (On)", () => {
-		it("should register and disconnect a handler", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-			});
-
-			let callCount = 0;
-			const disconnect = Input.On("Jump", "began", () => {
-				callCount += 1;
-			});
-
-			expect(typeOf(disconnect)).to.equal("function");
-
-			// Disconnect should not error
-			disconnect();
+	describe("state machine", () => {
+		it("starts and releases", () => {
+			const a = Input.context("combat").action("Swing", { bindings: [Enum.KeyCode.E] });
+			let started = 0;
+			let released = 0;
+			a.onStart(() => started++).onRelease(() => released++);
+			a._tryStart();
+			expect(a.state).to.equal("started");
+			expect(a.isHeld()).to.equal(true);
+			expect(started).to.equal(1);
+			a._handleReleased();
+			expect(a.state).to.equal("released");
+			expect(released).to.equal(1);
 		});
 
-		it("should connect handler to actions created after On()", () => {
-			// Register handler BEFORE creating context
-			let called = false;
-			const disconnect = Input.On("Jump", "began", () => {
-				called = true;
-			});
+		it("cancel transitions to cancelled", () => {
+			const a = Input.context("combat").action("Swing", { bindings: [Enum.KeyCode.E] });
+			let cancelled = false;
+			a.onCancel(() => (cancelled = true));
+			a._tryStart();
+			a.cancel();
+			expect(a.state).to.equal("cancelled");
+			expect(cancelled).to.equal(true);
+		});
 
-			// Context created after — handler should auto-connect
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-			});
+		it("complete is distinct from release", () => {
+			const a = Input.context("combat").action("Swing", { bindings: [Enum.KeyCode.E] });
+			let completed = false;
+			a.onComplete(() => (completed = true));
+			a._tryStart();
+			a.complete();
+			expect(a.state).to.equal("completed");
+			expect(completed).to.equal(true);
+		});
 
-			// We can't simulate a real keypress in tests, but we verify the handler is wired by checking it doesn't error and disconnects cleanly
-			disconnect();
+		it("buffers presses during cooldown when buffer > 0", () => {
+			const a = Input.context("combat").action("Heavy", {
+				bindings: [Enum.KeyCode.MouseLeftButton],
+				cooldownTag: "combat:heavy",
+				buffer: 0.2,
+			});
+			Input.cooldown.set("combat:heavy", 1);
+			let buffered = false;
+			a.onBuffer(() => (buffered = true));
+			a._tryStart();
+			expect(a.state).to.equal("buffered");
+			expect(buffered).to.equal(true);
+		});
+
+		it("drops press during cooldown without buffer", () => {
+			const a = Input.context("combat").action("Quick", {
+				bindings: [Enum.KeyCode.Q],
+				cooldownTag: "combat:q",
+			});
+			Input.cooldown.set("combat:q", 1);
+			a._tryStart();
+			expect(a.state).to.equal("idle");
+		});
+
+		it("starts immediately with no cooldown", () => {
+			const a = Input.context("combat").action("Quick", { bindings: [Enum.KeyCode.Q] });
+			a._tryStart();
+			expect(a.state).to.equal("started");
+		});
+
+		it("interrupt only fires when interruptible", () => {
+			const a = Input.context("combat").action("Hard", {
+				bindings: [Enum.KeyCode.E],
+				interruptible: false,
+			});
+			a._tryStart();
+			a.interrupt();
+			expect(a.state).to.equal("started");
+
+			const b = Input.context("combat").action("Soft", {
+				bindings: [Enum.KeyCode.Q],
+				interruptible: true,
+			});
+			b._tryStart();
+			b.interrupt();
+			expect(b.state).to.equal("interrupted");
 		});
 	});
 
-	describe("Introspection", () => {
-		it("should return empty contexts list when none registered", () => {
-			expect(Input.GetContexts().size()).to.equal(0);
-		});
-
-		it("should return all context identifiers", () => {
-			Input.Context("A", (context) => {
-				context.action("X").bind(Enum.KeyCode.A);
+	describe("stack", () => {
+		it("blocking context interrupts held actions", () => {
+			const combat = Input.context("combat", { priority: 10 });
+			const menus = Input.context("menus", { priority: 100, blocks: true });
+			const swing = combat.action("Swing", {
+				bindings: [Enum.KeyCode.E],
+				interruptible: true,
 			});
-			Input.Context("B", (context) => {
-				context.action("Y").bind(Enum.KeyCode.B);
-			});
-
-			const contexts = Input.GetContexts();
-			expect(contexts.size()).to.equal(2);
-			expect(contexts.includes("A")).to.equal(true);
-			expect(contexts.includes("B")).to.equal(true);
+			menus.action("Close", { bindings: [Enum.KeyCode.E] });
+			combat.enable();
+			swing._tryStart();
+			expect(swing.isHeld()).to.equal(true);
+			menus.enable();
+			expect(swing.state).to.equal("interrupted");
 		});
 
-		it("should return undefined for actions of nonexistent context", () => {
-			expect(Input.GetActions("NonExistent")).never.to.be.ok();
-		});
-
-		it("should return undefined for bindings of nonexistent action", () => {
-			Input.Context(TEST_CONTEXT, (context) => {
-				context.action("Jump").bind(Enum.KeyCode.Space);
-			});
-
-			expect(Input.GetBindings(TEST_CONTEXT, "NonExistent")).never.to.be.ok();
-		});
-
-		it("should report IsActive false for nonexistent context", () => {
-			expect(Input.IsActive("Ghost")).to.equal(false);
-		});
-
-		it("should report IAS availability", () => {
-			// On a real Roblox client with IAS, this should be true
-			expect(typeOf(Input.IsAvailable())).to.equal("boolean");
+		it("push enables and pop disables", () => {
+			Input.context("menus", { priority: 100, blocks: true });
+			Input.push("menus");
+			expect(Input.context("menus").enabled).to.equal(true);
+			Input.pop("menus");
+			expect(Input.context("menus").enabled).to.equal(false);
 		});
 	});
 
-	describe("Hold to activate (F key)", () => {
-		it("should activate context on press and deactivate on release", () => {
-			const HOLD_CONTEXT = "HoldContext";
+	describe("profile", () => {
+		it("exports and re-imports", () => {
+			const ctx = Input.context("combat");
+			ctx.action("Swing", { bindings: [Enum.KeyCode.E] });
+			ctx.action("Block", { bindings: [Enum.KeyCode.Q] });
+			const profile = Input.exportProfile(ctx);
+			Input.rebind(ctx.action("Swing"), [Enum.KeyCode.X]);
+			Input.importProfile(ctx, profile);
+			expect(ctx.action("Swing").keys[0]).to.equal(Enum.KeyCode.E);
+		});
+	});
 
-			Input.Context(HOLD_CONTEXT, (context) => {
-				context.action("HoldToggle").bind(Enum.KeyCode.F);
-			});
+	describe("introspection", () => {
+		it("contexts() lists all", () => {
+			Input.context("a");
+			Input.context("b");
+			expect(Input.contexts().size()).to.equal(2);
+		});
 
-			Input.On("HoldToggle", "began", () => {
-				Input.Activate(HOLD_CONTEXT);
-			});
-
-			Input.On("HoldToggle", "ended", () => {
-				Input.Deactivate(HOLD_CONTEXT);
-			});
-
-			// Verify initial state
-			expect(Input.IsActive(HOLD_CONTEXT)).to.equal(false);
-
-			// Verify bindings are correct
-			const keys = Input.GetBindings(HOLD_CONTEXT, "HoldToggle");
-			expect(keys).to.be.ok();
-			expect(keys!.size()).to.equal(1);
-			expect(keys!.includes(Enum.KeyCode.F)).to.equal(true);
+		it("isAvailable returns boolean", () => {
+			expect(typeOf(Input.isAvailable())).to.equal("boolean");
 		});
 	});
 };

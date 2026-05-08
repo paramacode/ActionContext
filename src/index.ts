@@ -1,71 +1,122 @@
-import { Initialize } from "./core/registry";
-import { IsAvailable } from "./core/validator";
-import { Context, Activate, Deactivate, DestroyContext, DestroyAll, GetContexts, GetActions, IsActive } from "./managers/context-manager";
-import { On } from "./managers/action-manager";
-import { Rebind, GetBindings, ResetBindings, ResetAllBindings, GetDefaultBindings, GetAllBindings, ExportBindings, ImportBindings, FindConflicts, ListenForInput } from "./managers/binding-manager";
+import { Action } from "./action/action";
+import * as cooldown from "./action/cooldown";
+import { getOrCreateContext, type Context } from "./context/context";
+import { push, pop } from "./context/stack";
+import { registry } from "./core/registry";
+import { startTick } from "./core/tick";
+import { rebind, resetBindings, resetAllBindings, findConflicts } from "./bindings/rebind";
+import { exportProfile, importProfile, allBindings } from "./bindings/profile";
+import { listenForInput } from "./bindings/listener";
+import { isIasAvailable } from "./internal/ias";
+import * as net from "./net/adapter";
 
-export type { TriggerType, ContextBuilder, ActionBuilder, ContextOptions, ActionProfile, BindingConflict, InputListenerOptions, BindingProfile } from "./types";
+import type {
+	BindingConflict,
+	BindingProfile,
+	ContextConfig,
+	InputListenerOptions,
+} from "./types";
 
-Initialize();
+export type {
+	ActionConfig,
+	ActionState,
+	BindingConflict,
+	BindingProfile,
+	ContextConfig,
+	InputListenerOptions,
+} from "./types";
+export type { Action } from "./action/action";
+export type { Context } from "./context/context";
+export type { ClientToServer, ServerToClient } from "./types";
 
 export const Input = {
-    /** Define a context with actions and bindings via builder callback. Errors if context already exists unless { override: true }. */
-    Context,
+	context(id: string, config?: ContextConfig): Context {
+		return getOrCreateContext(id, config);
+	},
 
-    /** Activate a context. Pass `true` as second arg to deactivate all others (exclusive mode). */
-    Activate,
+	action(id: string): Action | undefined {
+		return registry.actionsById.get(id);
+	},
 
-    /** Deactivate a context (actions stop responding). */
-    Deactivate,
+	contexts(): ReadonlyArray<string> {
+		const out: string[] = [];
+		for (const [id] of registry.contexts) out.push(id);
+		return out;
+	},
 
-    /** Destroy a context and all its actions/bindings. */
-    Destroy: DestroyContext,
+	push(id: string): void {
+		push(id);
+	},
 
-    /** Destroy all contexts, actions, bindings, and handlers. Useful for full state reset. */
-    DestroyAll,
+	pop(id?: string): string | undefined {
+		return pop(id);
+	},
 
-    /** Subscribe to an action trigger ("began", "ended", "changed") across all contexts. Returns a disconnect function. */
-    On,
+	cooldown: {
+		set: cooldown.set,
+		clear: cooldown.clear,
+		clearAll: cooldown.clearAll,
+		remaining: cooldown.remaining,
+	},
 
-    /** Rebind an action's keys at runtime without destroying anything. */
-    Rebind,
+	rebind(action: Action, keys: Enum.KeyCode | ReadonlyArray<Enum.KeyCode>): boolean {
+		return rebind(action, keys);
+	},
 
-    /** Query the current bindings for an action. Returns readonly array of KeyCodes. */
-    GetBindings,
+	resetBindings(action: Action): boolean {
+		return resetBindings(action);
+	},
 
-    /** Query the original default bindings for an action. */
-    GetDefaultBindings,
+	resetAllBindings(context: Context): void {
+		resetAllBindings(context);
+	},
 
-    /** Reset an action's bindings to the original defaults. */
-    ResetBindings,
+	findConflicts(
+		target: Action | Context,
+		keys: Enum.KeyCode | ReadonlyArray<Enum.KeyCode>,
+	): BindingConflict[] {
+		return findConflicts(target, keys);
+	},
 
-    /** Reset all action bindings in a context to their original defaults. */
-    ResetAllBindings,
+	exportProfile(context: Context): Map<string, Enum.KeyCode[]> {
+		return exportProfile(context);
+	},
 
-    /** Get all current bindings for every action in a context. */
-    GetAllBindings,
+	importProfile(
+		context: Context,
+		profile: ReadonlyMap<string, Enum.KeyCode | ReadonlyArray<Enum.KeyCode>>,
+	): boolean {
+		return importProfile(context, profile);
+	},
 
-    /** Export all bindings for a context as a serializable map (for DataStore persistence). */
-    ExportBindings,
+	allBindings(context: Context): BindingProfile {
+		return allBindings(context);
+	},
 
-    /** Apply a previously exported binding profile to a context. */
-    ImportBindings,
+	listen(
+		callback: (key: Enum.KeyCode) => void,
+		options?: InputListenerOptions,
+	): () => void {
+		return listenForInput(callback, options);
+	},
 
-    /** Check for binding conflicts before rebinding (same key on multiple actions). */
-    FindConflicts,
+	net: {
+		attach: net.attach,
+		detach: net.detach,
+		receive: net.receive,
+		setTransport: net.setTransport,
+	},
 
-    /** Listen for the next player key input (for "press any key" rebind UI). Returns a cancel function. */
-    ListenForInput,
+	reset(): void {
+		for (const [, context] of registry.contexts) context.destroy();
+		
+		registry.contexts.clear();
+		cooldown.clearAll();
+	},
 
-    /** Get all registered context identifiers. */
-    GetContexts,
-
-    /** Get all action names within a context. */
-    GetActions,
-
-    /** Check whether a context is currently active. */
-    IsActive,
-
-    /** Check if the Input Action System is available on this platform. */
-    IsAvailable
+	isAvailable(): boolean {
+		return isIasAvailable();
+	},
 };
+
+startTick();
