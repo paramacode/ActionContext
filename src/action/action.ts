@@ -205,19 +205,22 @@ export class Action {
 		this._net?.release?.(this);
 	}
 
-	_tryStart(): void {
+	_tryStart(): boolean {
 		if (cooldown.remaining(this.config.cooldownTag) > 0) {
 			const window = this.config.buffer ?? 0;
-			if (window <= 0) return;
+			if (window <= 0) return false;
 
-			this.state = "buffered";
-			this._bufferUntil = os.clock() + window;
-			this._bufferedTap = false;
+			if (this.state !== "buffered") {
+				this.state = "buffered";
+				this._bufferUntil = os.clock() + window;
+				this._bufferedTap = false;
 
-			registry.buffered.add(this);
+				registry.buffered.add(this);
 
-			this._fire(this._bufferHandlers);
-			return;
+				this._fire(this._bufferHandlers);
+			}
+
+			return false;
 		}
 
 		this.pressedAt = os.clock();
@@ -232,6 +235,8 @@ export class Action {
 
 		this._fire(this._startHandlers);
 		this._net?.start?.(this);
+
+		return true;
 	}
 
 	_tickHold(deltaTime: number, now: number): void {
@@ -261,17 +266,22 @@ export class Action {
 	}
 
 	_tryFlushBuffer(now: number): void {
-		if (cooldown.remaining(this.config.cooldownTag) <= 0) {
-			registry.buffered.delete(this);
-			const tap = this._bufferedTap;
-			this._bufferedTap = false;
-			this._tryStart();
-			if (tap && this.state === "started") this._handleReleased();
-		} else if (now > this._bufferUntil) {
+		if (now > this._bufferUntil) {
 			registry.buffered.delete(this);
 			this._bufferedTap = false;
 			this.state = "idle";
+			return;
 		}
+
+		if (cooldown.remaining(this.config.cooldownTag) > 0 || _isSuppressed(this)) return;
+
+		const tap = this._bufferedTap;
+		if (!this._tryStart()) return;
+
+		registry.buffered.delete(this);
+		this._bufferedTap = false;
+
+		if (tap) this._handleReleased();
 	}
 
 	_destroy(): void {

@@ -139,6 +139,31 @@ export = () => {
 			expect(buffered).to.equal(true);
 		});
 
+		it("keeps buffered intent until the action becomes valid", () => {
+			const combat = Input.context("combat", { priority: 10 });
+			const menus = Input.context("menus", { priority: 100, blocks: true });
+			const a = combat.action("Heavy", {
+				bindings: [Enum.KeyCode.MouseLeftButton],
+				cooldownTag: "combat:heavy",
+				buffer: 0.2,
+			});
+
+			combat.enable();
+			menus.enable();
+
+			Input.cooldown.set("combat:heavy", 1);
+			a._tryStart();
+			a._handleReleased();
+
+			Input.cooldown.clear("combat:heavy");
+			a._tryFlushBuffer(os.clock());
+			expect(a.state).to.equal("buffered");
+
+			menus.disable();
+			a._tryFlushBuffer(os.clock());
+			expect(a.state).to.equal("released");
+		});
+
 		it("drops press during cooldown without buffer", () => {
 			const a = Input.context("combat").action("Quick", {
 				bindings: [Enum.KeyCode.Q],
